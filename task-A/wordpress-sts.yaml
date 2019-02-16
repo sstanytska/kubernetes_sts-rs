@@ -1,0 +1,47 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: wordpress-sts
+spec:
+  serviceName: wordpress-sts
+  replicas: 5
+  selector:
+    matchLabels:
+      app: wordpress-sts
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: wordpress-sts
+        tier: frontend
+    spec:
+      containers:
+      - image: wordpress:4.8-apache
+        name: wordpress
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: mysql-wp
+        - name: WORDPRESS_DB_PASSWORD
+          value: password
+        ports:
+        - containerPort: 80
+          name: wordpress
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wordpress-sts
+  name: wordpress-service
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: wordpress-sts
+  sessionAffinity: None
+  type: LoadBalancer
